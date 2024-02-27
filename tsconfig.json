@@ -10,5 +10,5 @@
       "forceConsistentCasingInFileNames": true
     },
     "include": ["src"],
-    "exclude": ["node_modules", "tests/alice-engine.exe"]
+    "exclude": ["node_modules", "tests/alice_engine.exe"]
   }
