@@ -1,9 +1,9 @@
 {
   "name": "small-uci",
-  "version": "1.0.4",
+  "version": "1.0.6",
   "description": "A TypeScript interface for interacting with a chess engine",
   "main": "dist/chess_engine.js",
-  "types": "dist/chess_engine.ts",
+  "types": "dist/chess_engine.d.ts",
   "scripts": {
     "test": "jest",
     "build": "tsc"

@@ -1,77 +1,79 @@
-import { spawn } from 'child_process'
+import { spawn, ChildProcessWithoutNullStreams } from 'child_process'
 
 export class ChessEngineInterface {
-  private engine_process
+  private engineProcess: ChildProcessWithoutNullStreams
 
-  constructor (engine_path: string) {
-    this.engine_process = spawn(engine_path)
+  constructor (enginePath: string) {
+    try {
+      this.engineProcess = spawn(enginePath);
+    } catch (error) {
+      throw new Error(`Failed to spawn engine process: ${(error as Error).message}`);
+    }
   }
 
-  // Bot Commands.
-
-  async send_command_expect_output (command: string): Promise<string> {
+  // Sends a command to the engine and returns the engine's response.
+  async sendCommandExpectOutput (command: string): Promise<string> {
     return new Promise<string>((resolve, reject) => {
-      this.engine_process.stdin.write(command + '\n')
+      this.engineProcess.stdin.write(command + '\n')
 
-      this.engine_process.stdout.once('data', data => {
+      this.engineProcess.stdout.once('data', data => {
         const response = data.toString()
         resolve(response)
       })
 
-      this.engine_process.stdout.once('error', reject)
+      this.engineProcess.stdout.once('error', reject)
     })
   }
 
-  async send_command_no_output (command: string): Promise<void> {
+  // Sends a command to the engine and does not expect a response.
+  async sendCommandNoOutput (command: string): Promise<void> {
     return new Promise<void>((resolve, reject) => {
-      this.engine_process.stdin.write(command + '\n')
+      this.engineProcess.stdin.write(command + '\n')
 
-      this.engine_process.stdout.once('error', reject)
+      this.engineProcess.stdout.once('error', reject)
       resolve()
     })
   }
 
+  // Shuts down the engine process.
   shutdown () {
-    this.engine_process.kill()
+    this.engineProcess.kill()
   }
 
-  // Uci Commands.
-
+  // Sends the 'uci' command to the engine and returns the engine's response.
   async uci (): Promise<string> {
-    return this.send_command_expect_output('uci')
+    return this.sendCommandExpectOutput('uci')
   }
 
+  // Sends the 'isready' command to the engine and returns the engine's response.
   async isReady (): Promise<string> {
-    return this.send_command_expect_output('isready')
+    return this.sendCommandExpectOutput('isready')
   }
 
+  // Sends a 'position' command to the engine.
   async position (fen_or_start_pos: string, moves?: string[]): Promise<void> {
-    let command = ''
-    if (fen_or_start_pos === 'startpos') {
-      command = 'position startpos'
-    } else {
-      command = `position fen ${fen_or_start_pos}`
-    }
+    let command = fen_or_start_pos === 'startpos'
+      ? 'position startpos'
+      : `position fen ${fen_or_start_pos}`
 
     if (moves) {
       command += ` moves ${moves.join(' ')}`
     }
 
-    await this.send_command_no_output(command)
+    await this.sendCommandNoOutput(command)
   }
 
-  async go_depth(depth: number): Promise<string> {
-    const command = `go depth ${depth}`;
-    const response = await this.send_command_expect_output(command);
-  
-    const bestMoveLine = response.split('\n').find(line => line.startsWith('bestmove'));
+  // Sends a 'go depth' command to the engine and returns the best move.
+  async goDepth(depth: number): Promise<string> {
+    const command = `go depth ${depth}`
+    const response = await this.sendCommandExpectOutput(command)
+
+    const bestMoveLine = response.split('\n').find(line => line.startsWith('bestmove'))
     if (!bestMoveLine) {
-      throw new Error('No best move found in engine response');
+      throw new Error(`No best move found in engine response: ${response}`)
     }
-  
-    const bestMove = bestMoveLine.split(' ')[1];
-    return bestMove;
-  }
 
-  
+    const bestMove = bestMoveLine.split(' ')[1]
+    return bestMove
+  }
 }
