@@ -59,6 +59,8 @@ export class ChessEngineInterface {
     return response
   }
 
+
+
   // Sends a 'position' command to the engine.
   async position (fen_or_start_pos: string, moves?: string[]): Promise<void> {
     let command = fen_or_start_pos === 'startpos'
@@ -70,6 +72,11 @@ export class ChessEngineInterface {
     }
 
     await this.sendCommand(command)
+  }
+
+  // Sends a 'ucinewgame' command to the engine.
+  async uciNewGame(): Promise<void> {
+    await this.sendCommand('ucinewgame')
   }
 
   // Sends a 'go depth' command to the engine and returns the best move.
@@ -88,4 +95,17 @@ export class ChessEngineInterface {
     const bestMove = bestMoveLine.split(' ')[1]
     return bestMove
   }
+
+  // Sends a 'go' command to the engine.
+  async go(): Promise<void> {
+    await this.sendCommand('go')
+  }
+
+  // Sends a 'stop' command to the engine and returns the best move.
+  async stop(): Promise<String> { 
+    await this.sendCommand('stop')
+    const response = await this.getEngineOutput('bestmove')
+    return response
+  }
+
 }

@@ -32,7 +32,14 @@ describe('ChessEngineInterface', () => {
       engineInterface.position('startpos', ['e2e4', 'e7e5'])
     ).resolves.not.toThrow()
     console.log('position sent')
-  }, 2) //(1 seconds)
+  }, 2) //(2 seconds)
+
+  test('ucinewgame', async () => {
+    await expect(
+      engineInterface.uciNewGame
+    ).resolves.not.toThrow()
+    console.log('position sent')
+  }, 2) //(2 seconds)
 
   test('go depth', async () => {
     const response = await engineInterface.goDepth(6)

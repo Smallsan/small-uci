@@ -7,5 +7,6 @@ export declare class ChessEngineInterface {
     uci(): Promise<string>;
     isReady(): Promise<string>;
     position(fen_or_start_pos: string, moves?: string[]): Promise<void>;
+    uciNewGame(): Promise<void>;
     goDepth(depth: number): Promise<string>;
 }
