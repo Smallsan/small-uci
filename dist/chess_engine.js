@@ -179,6 +179,36 @@ var ChessEngineInterface = /** @class */ (function () {
             });
         });
     };
+    // Sends a 'go' command to the engine.
+    ChessEngineInterface.prototype.go = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.sendCommand('go')];
+                    case 1:
+                        _a.sent();
+                        return [2 /*return*/];
+                }
+            });
+        });
+    };
+    // Sends a 'stop' command to the engine and returns the best move.
+    ChessEngineInterface.prototype.stop = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var response;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.sendCommand('stop')];
+                    case 1:
+                        _a.sent();
+                        return [4 /*yield*/, this.getEngineOutput('bestmove')];
+                    case 2:
+                        response = _a.sent();
+                        return [2 /*return*/, response];
+                }
+            });
+        });
+    };
     return ChessEngineInterface;
 }());
 exports.ChessEngineInterface = ChessEngineInterface;

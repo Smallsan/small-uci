@@ -9,4 +9,6 @@ export declare class ChessEngineInterface {
     position(fen_or_start_pos: string, moves?: string[]): Promise<void>;
     uciNewGame(): Promise<void>;
     goDepth(depth: number): Promise<string>;
+    go(): Promise<void>;
+    stop(): Promise<String>;
 }
