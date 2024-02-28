@@ -6,7 +6,7 @@ describe('ChessEngineInterface', () => {
 
   beforeEach(() => {
     engineInterface = new ChessEngineInterface(
-      path.join(__dirname, 'Path to your engine')
+      path.join(__dirname, './alice-engine.exe')
     )
   })
 
@@ -16,7 +16,7 @@ describe('ChessEngineInterface', () => {
 
   test('uci', async () => {
     const command = 'uci'
-    const response = await engineInterface .uci()
+    const response = await engineInterface.uci()
     console.log(response)
     expect(response).toBeDefined()
   }, 5000) //(5 seconds)
@@ -29,13 +29,13 @@ describe('ChessEngineInterface', () => {
 
   test('position', async () => {
     await expect(
-    engineInterface.position('startpos', ['e2e4', 'e7e5'])
+      engineInterface.position('startpos', ['e2e4', 'e7e5'])
     ).resolves.not.toThrow()
-    console.log("position sent")
-  }, 1) //(1 seconds)
+    console.log('position sent')
+  }, 2) //(1 seconds)
 
   test('go depth', async () => {
-    const response = await engineInterface.goDepth(4)
+    const response = await engineInterface.goDepth(6)
     console.log(response)
     expect(response).toBeDefined()
   }, 10000) //(10 seconds)

@@ -39,72 +39,103 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ChessEngineInterface = void 0;
 var child_process_1 = require("child_process");
 var ChessEngineInterface = /** @class */ (function () {
-    function ChessEngineInterface(engine_path) {
-        this.engine_process = (0, child_process_1.spawn)(engine_path);
+    function ChessEngineInterface(enginePath) {
+        try {
+            this.engineProcess = (0, child_process_1.spawn)(enginePath);
+        }
+        catch (error) {
+            throw new Error("Failed to spawn engine process: ".concat(error.message));
+        }
     }
-    // Bot Commands.
-    ChessEngineInterface.prototype.send_command_expect_output = function (command) {
+    ChessEngineInterface.prototype.sendCommand = function (command) {
         return __awaiter(this, void 0, void 0, function () {
             var _this = this;
             return __generator(this, function (_a) {
                 return [2 /*return*/, new Promise(function (resolve, reject) {
-                        _this.engine_process.stdin.write(command + '\n');
-                        _this.engine_process.stdout.once('data', function (data) {
-                            var response = data.toString();
-                            resolve(response);
+                        _this.engineProcess.stdin.write(command + '\n', function (err) {
+                            if (err)
+                                reject(err);
+                            else
+                                resolve();
                         });
-                        _this.engine_process.stdout.once('error', reject);
                     })];
             });
         });
     };
-    ChessEngineInterface.prototype.send_command_no_output = function (command) {
+    ChessEngineInterface.prototype.getEngineOutput = function (endSignal) {
         return __awaiter(this, void 0, void 0, function () {
             var _this = this;
             return __generator(this, function (_a) {
                 return [2 /*return*/, new Promise(function (resolve, reject) {
-                        _this.engine_process.stdin.write(command + '\n');
-                        _this.engine_process.stdout.once('error', reject);
-                        resolve();
+                        var dataBuffer = '';
+                        var dataListener = function (data) {
+                            dataBuffer += data.toString();
+                            if (dataBuffer.includes(endSignal)) {
+                                _this.engineProcess.stdout.off('data', dataListener);
+                                resolve(dataBuffer);
+                            }
+                        };
+                        _this.engineProcess.stdout.on('data', dataListener);
+                        _this.engineProcess.stdout.once('error', function (err) {
+                            _this.engineProcess.stdout.off('data', dataListener);
+                            reject(err);
+                        });
                     })];
             });
         });
     };
+    // Shuts down the engine process.
     ChessEngineInterface.prototype.shutdown = function () {
-        this.engine_process.kill();
+        this.engineProcess.kill();
     };
-    // Uci Commands.
+    // Sends the 'uci' command to the engine and returns the engine's response.
     ChessEngineInterface.prototype.uci = function () {
         return __awaiter(this, void 0, void 0, function () {
+            var response;
             return __generator(this, function (_a) {
-                return [2 /*return*/, this.send_command_expect_output('uci')];
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.sendCommand('uci')];
+                    case 1:
+                        _a.sent();
+                        return [4 /*yield*/, this.getEngineOutput('uciok')];
+                    case 2:
+                        response = _a.sent();
+                        return [2 /*return*/, response];
+                }
             });
         });
     };
+    // Sends the 'isready' command to the engine and returns the engine's response.
     ChessEngineInterface.prototype.isReady = function () {
         return __awaiter(this, void 0, void 0, function () {
+            var response;
             return __generator(this, function (_a) {
-                return [2 /*return*/, this.send_command_expect_output('isready')];
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.sendCommand('isready')];
+                    case 1:
+                        _a.sent();
+                        return [4 /*yield*/, this.getEngineOutput('readyok')];
+                    case 2:
+                        response = _a.sent();
+                        return [2 /*return*/, response];
+                }
             });
         });
     };
+    // Sends a 'position' command to the engine.
     ChessEngineInterface.prototype.position = function (fen_or_start_pos, moves) {
         return __awaiter(this, void 0, void 0, function () {
             var command;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        command = '';
-                        if (fen_or_start_pos === 'startpos') {
-                            command = 'position startpos';
-                        }
-                        else {
-                            command = "position fen ".concat(fen_or_start_pos);
-                        }
+                        command = fen_or_start_pos === 'startpos'
+                            ? 'position startpos'
+                            : "position fen ".concat(fen_or_start_pos);
                         if (moves) {
                             command += " moves ".concat(moves.join(' '));
                         }
-                        return [4 /*yield*/, this.send_command_no_output(command)];
+                        return [4 /*yield*/, this.sendCommand(command)];
                     case 1:
                         _a.sent();
                         return [2 /*return*/];
@@ -112,19 +143,22 @@ var ChessEngineInterface = /** @class */ (function () {
             });
         });
     };
-    ChessEngineInterface.prototype.go_depth = function (depth) {
+    // Sends a 'go depth' command to the engine and returns the best move.
+    ChessEngineInterface.prototype.goDepth = function (depth) {
         return __awaiter(this, void 0, void 0, function () {
-            var command, response, bestMoveLine, bestMove;
+            var response, bestMoveLine, bestMove;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0:
-                        command = "go depth ".concat(depth);
-                        return [4 /*yield*/, this.send_command_expect_output(command)];
+                    case 0: return [4 /*yield*/, this.sendCommand("go depth ".concat(depth))];
                     case 1:
+                        _a.sent();
+                        return [4 /*yield*/, this.getEngineOutput('bestmove')];
+                    case 2:
                         response = _a.sent();
+                        console.log(response);
                         bestMoveLine = response.split('\n').find(function (line) { return line.startsWith('bestmove'); });
                         if (!bestMoveLine) {
-                            throw new Error('No best move found in engine response');
+                            throw new Error("No best move found in engine response: ".concat(response));
                         }
                         bestMove = bestMoveLine.split(' ')[1];
                         return [2 /*return*/, bestMove];

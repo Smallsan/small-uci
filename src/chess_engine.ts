@@ -11,28 +11,33 @@ export class ChessEngineInterface {
     }
   }
 
-  // Sends a command to the engine and returns the engine's response.
-  async sendCommandExpectOutput (command: string): Promise<string> {
-    return new Promise<string>((resolve, reject) => {
-      this.engineProcess.stdin.write(command + '\n')
-
-      this.engineProcess.stdout.once('data', data => {
-        const response = data.toString()
-        resolve(response)
-      })
-
-      this.engineProcess.stdout.once('error', reject)
-    })
-  }
-
-  // Sends a command to the engine and does not expect a response.
-  async sendCommandNoOutput (command: string): Promise<void> {
+  async sendCommand(command: string): Promise<void> {
     return new Promise<void>((resolve, reject) => {
-      this.engineProcess.stdin.write(command + '\n')
-
-      this.engineProcess.stdout.once('error', reject)
-      resolve()
-    })
+      this.engineProcess.stdin.write(command + '\n', (err) => {
+        if (err) reject(err);
+        else resolve();
+      });
+    });
+  }
+  
+  async getEngineOutput(endSignal: string): Promise<string> {
+    return new Promise<string>((resolve, reject) => {
+      let dataBuffer = '';
+  
+      const dataListener = (data:Buffer) => {
+        dataBuffer += data.toString();
+        if (dataBuffer.includes(endSignal)) {
+          this.engineProcess.stdout.off('data', dataListener);
+          resolve(dataBuffer);
+        }
+      };
+  
+      this.engineProcess.stdout.on('data', dataListener);
+      this.engineProcess.stdout.once('error', (err) => {
+        this.engineProcess.stdout.off('data', dataListener);
+        reject(err);
+      });
+    });
   }
 
   // Shuts down the engine process.
@@ -42,12 +47,16 @@ export class ChessEngineInterface {
 
   // Sends the 'uci' command to the engine and returns the engine's response.
   async uci (): Promise<string> {
-    return this.sendCommandExpectOutput('uci')
+    await this.sendCommand('uci')
+    const response = await this.getEngineOutput('uciok')
+    return response
   }
 
   // Sends the 'isready' command to the engine and returns the engine's response.
   async isReady (): Promise<string> {
-    return this.sendCommandExpectOutput('isready')
+    await this.sendCommand('isready')
+    const response = await this.getEngineOutput('readyok')
+    return response
   }
 
   // Sends a 'position' command to the engine.
@@ -60,13 +69,16 @@ export class ChessEngineInterface {
       command += ` moves ${moves.join(' ')}`
     }
 
-    await this.sendCommandNoOutput(command)
+    await this.sendCommand(command)
   }
 
   // Sends a 'go depth' command to the engine and returns the best move.
   async goDepth(depth: number): Promise<string> {
-    const command = `go depth ${depth}`
-    const response = await this.sendCommandExpectOutput(command)
+    await this.sendCommand(`go depth ${depth}`)
+    const response = await this.getEngineOutput('bestmove')
+
+    console.log(response
+    )
 
     const bestMoveLine = response.split('\n').find(line => line.startsWith('bestmove'))
     if (!bestMoveLine) {
