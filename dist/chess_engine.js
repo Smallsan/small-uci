@@ -179,12 +179,44 @@ var ChessEngineInterface = /** @class */ (function () {
             });
         });
     };
-    // Sends a 'go' command to the engine.
-    ChessEngineInterface.prototype.go = function () {
+    // Sends a 'go' command to the engine with the given options.
+    ChessEngineInterface.prototype.go = function (options) {
+        if (options === void 0) { options = {}; }
         return __awaiter(this, void 0, void 0, function () {
+            var command, _i, _a, _b, option, value;
+            return __generator(this, function (_c) {
+                switch (_c.label) {
+                    case 0:
+                        command = 'go';
+                        for (_i = 0, _a = Object.entries(options); _i < _a.length; _i++) {
+                            _b = _a[_i], option = _b[0], value = _b[1];
+                            if (option === 'searchmoves' && Array.isArray(value)) {
+                                command += " ".concat(option, " ").concat(value.join(' '));
+                            }
+                            else if (value !== undefined) {
+                                command += " ".concat(option, " ").concat(value);
+                            }
+                        }
+                        return [4 /*yield*/, this.sendCommand(command)];
+                    case 1:
+                        _c.sent();
+                        return [2 /*return*/];
+                }
+            });
+        });
+    };
+    // Sends a 'setoption' command to the engine.
+    ChessEngineInterface.prototype.setOption = function (name, value) {
+        return __awaiter(this, void 0, void 0, function () {
+            var command;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.sendCommand('go')];
+                    case 0:
+                        command = "setoption name ".concat(name);
+                        if (value !== undefined) {
+                            command += " value ".concat(value);
+                        }
+                        return [4 /*yield*/, this.sendCommand(command)];
                     case 1:
                         _a.sent();
                         return [2 /*return*/];
@@ -205,6 +237,57 @@ var ChessEngineInterface = /** @class */ (function () {
                     case 2:
                         response = _a.sent();
                         return [2 /*return*/, response];
+                }
+            });
+        });
+    };
+    // Sends a 'debug' command to the engine.
+    ChessEngineInterface.prototype.setDebugMode = function (on) {
+        return __awaiter(this, void 0, void 0, function () {
+            var mode;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        mode = on ? 'on' : 'off';
+                        return [4 /*yield*/, this.sendCommand("debug ".concat(mode))];
+                    case 1:
+                        _a.sent();
+                        return [2 /*return*/];
+                }
+            });
+        });
+    };
+    // Sends a 'register' command to the engine.
+    ChessEngineInterface.prototype.register = function (name, code) {
+        return __awaiter(this, void 0, void 0, function () {
+            var command;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        command = 'register';
+                        if (name && code) {
+                            command += " name ".concat(name, " code ").concat(code);
+                        }
+                        else {
+                            command += ' later';
+                        }
+                        return [4 /*yield*/, this.sendCommand(command)];
+                    case 1:
+                        _a.sent();
+                        return [2 /*return*/];
+                }
+            });
+        });
+    };
+    // Sends a 'ponderhit' command to the engine.
+    ChessEngineInterface.prototype.ponderhit = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.sendCommand('ponderhit')];
+                    case 1:
+                        _a.sent();
+                        return [2 /*return*/];
                 }
             });
         });

@@ -36,7 +36,7 @@ describe('ChessEngineInterface', () => {
 
   test('ucinewgame', async () => {
     await expect(
-      engineInterface.uciNewGame
+      engineInterface.uciNewGame()
     ).resolves.not.toThrow()
     console.log('position sent')
   }, 2) //(2 seconds)

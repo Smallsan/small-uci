@@ -96,9 +96,39 @@ export class ChessEngineInterface {
     return bestMove
   }
 
-  // Sends a 'go' command to the engine.
-  async go(): Promise<void> {
-    await this.sendCommand('go')
+  // Sends a 'go' command to the engine with the given options.
+  async go(options: {
+    searchmoves?: string[],
+    ponder?: boolean,
+    wtime?: number,
+    btime?: number,
+    winc?: number,
+    binc?: number,
+    movestogo?: number,
+    depth?: number,
+    nodes?: number,
+    mate?: number,
+    movetime?: number,
+    infinite?: boolean
+  } = {}): Promise<void> {
+    let command = 'go';
+    for (const [option, value] of Object.entries(options)) {
+      if (option === 'searchmoves' && Array.isArray(value)) {
+        command += ` ${option} ${value.join(' ')}`;
+      } else if (value !== undefined) {
+        command += ` ${option} ${value}`;
+      }
+    }
+    await this.sendCommand(command);
+  }
+
+  // Sends a 'setoption' command to the engine.
+  async setOption(name: string, value?: string): Promise<void> {
+    let command = `setoption name ${name}`;
+    if (value !== undefined) {
+      command += ` value ${value}`;
+    }
+    await this.sendCommand(command);
   }
 
   // Sends a 'stop' command to the engine and returns the best move.
@@ -106,6 +136,28 @@ export class ChessEngineInterface {
     await this.sendCommand('stop')
     const response = await this.getEngineOutput('bestmove')
     return response
+  }
+
+  // Sends a 'debug' command to the engine.
+  async setDebugMode(on: boolean): Promise<void> {
+    const mode = on ? 'on' : 'off';
+    await this.sendCommand(`debug ${mode}`);
+  }
+
+  // Sends a 'register' command to the engine.
+  async register(name?: string, code?: string): Promise<void> {
+    let command = 'register';
+    if (name && code) {
+      command += ` name ${name} code ${code}`;
+    } else {
+      command += ' later';
+    }
+    await this.sendCommand(command);
+  }
+
+  // Sends a 'ponderhit' command to the engine.
+  async ponderhit(): Promise<void> {
+    await this.sendCommand('ponderhit');
   }
 
 }
