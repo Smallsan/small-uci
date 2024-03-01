@@ -11,7 +11,7 @@ describe('ChessEngineInterface', () => {
   })
 
   afterEach(() => {
-    engineInterface.shutdown()
+    engineInterface.quit()
   })
 
   test('uci', async () => {

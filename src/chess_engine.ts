@@ -41,7 +41,7 @@ export class ChessEngineInterface {
   }
 
   // Shuts down the engine process.
-  shutdown () {
+  quit () {
     this.engineProcess.kill()
   }
 
