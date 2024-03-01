@@ -22,7 +22,7 @@ export declare class ChessEngineInterface {
         mate?: number;
         movetime?: number;
         infinite?: boolean;
-    }): Promise<void>;
+    }): Promise<string | void>;
     setOption(name: string, value?: string): Promise<void>;
     stop(): Promise<String>;
     setDebugMode(on: boolean): Promise<void>;

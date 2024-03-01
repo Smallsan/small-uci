@@ -110,7 +110,7 @@ export class ChessEngineInterface {
     mate?: number,
     movetime?: number,
     infinite?: boolean
-  } = {}): Promise<void> {
+  } = {}): Promise<string | void> {
     let command = 'go';
     for (const [option, value] of Object.entries(options)) {
       if (option === 'searchmoves' && Array.isArray(value)) {
@@ -119,7 +119,20 @@ export class ChessEngineInterface {
         command += ` ${option} ${value}`;
       }
     }
+  
     await this.sendCommand(command);
+  
+    if (!options.infinite) {
+      return new Promise((resolve, reject) => {
+        this.engineProcess.on('bestmove', (move: string) => {
+          resolve(move);
+        });
+  
+        this.engineProcess.on('error', (err: Error) => {
+          reject(err);
+        });
+      });
+    }
   }
 
   // Sends a 'setoption' command to the engine.

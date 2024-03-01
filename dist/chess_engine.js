@@ -184,6 +184,7 @@ var ChessEngineInterface = /** @class */ (function () {
         if (options === void 0) { options = {}; }
         return __awaiter(this, void 0, void 0, function () {
             var command, _i, _a, _b, option, value;
+            var _this = this;
             return __generator(this, function (_c) {
                 switch (_c.label) {
                     case 0:
@@ -200,6 +201,16 @@ var ChessEngineInterface = /** @class */ (function () {
                         return [4 /*yield*/, this.sendCommand(command)];
                     case 1:
                         _c.sent();
+                        if (!options.infinite) {
+                            return [2 /*return*/, new Promise(function (resolve, reject) {
+                                    _this.engineProcess.on('bestmove', function (move) {
+                                        resolve(move);
+                                    });
+                                    _this.engineProcess.on('error', function (err) {
+                                        reject(err);
+                                    });
+                                })];
+                        }
                         return [2 /*return*/];
                 }
             });
