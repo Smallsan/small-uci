@@ -85,7 +85,7 @@ var ChessEngineInterface = /** @class */ (function () {
         });
     };
     // Shuts down the engine process.
-    ChessEngineInterface.prototype.shutdown = function () {
+    ChessEngineInterface.prototype.quit = function () {
         this.engineProcess.kill();
     };
     // Sends the 'uci' command to the engine and returns the engine's response.
